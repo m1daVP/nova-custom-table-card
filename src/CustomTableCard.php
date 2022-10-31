@@ -3,6 +3,7 @@
 namespace M1daVP\CustomTableCard;
 
 use Laravel\Nova\Card;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class CustomTableCard extends Card
 {
@@ -58,6 +59,13 @@ class CustomTableCard extends Card
     {
         return $this->withMeta(['viewAll' => $viewAll]);
     }
+
+	public function paginator(LengthAwarePaginator $paginator)
+	{
+		return $this->withMeta([
+			'paginator' => $paginator,
+		]);
+	}
 
     /**
      * Get the component name for the element.

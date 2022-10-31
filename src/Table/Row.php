@@ -1,6 +1,6 @@
 <?php
 
-namespace Mako\CustomTableCard\Table;
+namespace M1daVP\CustomTableCard\Table;
 
 use JsonSerializable;
 use Laravel\Nova\Makeable;

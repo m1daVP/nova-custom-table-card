@@ -6,7 +6,7 @@ Simple card table with data of you choice.
 
 It can be useful as latest order list or latest posts, ...
 
-![Nova Custom Table Card](https://raw.githubusercontent.com/m-a-k-o/nova-custom-table-card/master/screenshot.png)
+![Nova Custom Table Card](https://raw.githubusercontent.com/m1daVP/nova-custom-table-card/master/screenshot.png)
 
  ## This docs are only for v. > 2.*
  In version 2 added: refresh (reload), possiblity to add id and classes to cells
@@ -20,7 +20,7 @@ Version 4: Add compatibility for Nova v. 4
 You can install the package in to a Laravel app that uses [Nova](https://nova.laravel.com) via composer:
 
 ```bash
-composer require m-a-k-o/nova-custom-table-card
+composer require m1davp/nova-custom-table-card
 ```
 
 You must register the card with NovaServiceProvider.
@@ -35,7 +35,7 @@ public function cards()
         // ...
 
         // all the parameters are required excelpt title
-        new \Mako\CustomTableCard\CustomTableCard(
+        new \M1daVP\CustomTableCard\CustomTableCard(
             array $header, array $data, string $title, array $viewAll
         ),
     ];
@@ -52,20 +52,20 @@ public function cards()
         // ...
 
         // all the parameters are required
-        new \Mako\CustomTableCard\CustomTableCard(
+        new \M1daVP\CustomTableCard\CustomTableCard(
             [
-                new \Mako\CustomTableCard\Table\Cell('Order Number'),
+                new \M1daVP\CustomTableCard\Table\Cell('Order Number'),
                 // Set sortable to true in a header Cell to allow its column's sorting
-                (new \Mako\CustomTableCard\Table\Cell('Price'))->sortable(true)->class('text-right'),
+                (new \M1daVP\CustomTableCard\Table\Cell('Price'))->sortable(true)->class('text-right'),
             ], // header
             [
-                (new \Mako\CustomTableCard\Table\Row(
-                    new \Mako\CustomTableCard\Table\Cell('2018091001'),
-                    (new \Mako\CustomTableCard\Table\Cell('20.50'))->class('text-right')->id('price-2')
+                (new \M1daVP\CustomTableCard\Table\Row(
+                    new \M1daVP\CustomTableCard\Table\Cell('2018091001'),
+                    (new \M1daVP\CustomTableCard\Table\Cell('20.50'))->class('text-right')->id('price-2')
                 ))->viewLink('/resources/orders/1'),
-                (new \Mako\CustomTableCard\Table\Row(
-                    new \Mako\CustomTableCard\Table\Cell('2018091002'),
-                    (new \Mako\CustomTableCard\Table\Cell('201.25'))->class('text-right')->id('price-2')
+                (new \M1daVP\CustomTableCard\Table\Row(
+                    new \M1daVP\CustomTableCard\Table\Cell('2018091002'),
+                    (new \M1daVP\CustomTableCard\Table\Cell('201.25'))->class('text-right')->id('price-2')
                 )),
             ], // data
             'Orders,' // title
@@ -85,20 +85,20 @@ public function cards()
         // ...
 
         // all the parameters are required except title
-        (new \Mako\CustomTableCard\CustomTableCard)
+        (new \M1daVP\CustomTableCard\CustomTableCard)
             ->header([
-                new \Mako\CustomTableCard\Table\Cell('Order Number'),
+                new \M1daVP\CustomTableCard\Table\Cell('Order Number'),
                 // Set sortable to true in a header Cell to allow its column's sorting
-                (new \Mako\CustomTableCard\Table\Cell('Price'))->sortable(true)->class('text-right'),
+                (new \M1daVP\CustomTableCard\Table\Cell('Price'))->sortable(true)->class('text-right'),
             ])
             ->data([
-                (new \Mako\CustomTableCard\Table\Row(
-                    new \Mako\CustomTableCard\Table\Cell('2018091001'),
-                    (new \Mako\CustomTableCard\Table\Cell('20.50'))->class('text-right')->id('price-2')
+                (new \M1daVP\CustomTableCard\Table\Row(
+                    new \M1daVP\CustomTableCard\Table\Cell('2018091001'),
+                    (new \M1daVP\CustomTableCard\Table\Cell('20.50'))->class('text-right')->id('price-2')
                 ))->viewLink('/resources/orders/1'),
-                (new \Mako\CustomTableCard\Table\Row(
-                    new \Mako\CustomTableCard\Table\Cell('2018091002'),
-                    (new \Mako\CustomTableCard\Table\Cell('201.25'))->class('text-right')->id('price-2')
+                (new \M1daVP\CustomTableCard\Table\Row(
+                    new \M1daVP\CustomTableCard\Table\Cell('2018091002'),
+                    (new \M1daVP\CustomTableCard\Table\Cell('201.25'))->class('text-right')->id('price-2')
                 )),
             ])
             ->title('Orders')
@@ -109,7 +109,7 @@ public function cards()
 
 or:
 
-You can create your own class which will extend \Mako\CustomTableCard\CustomTableCard in Nova/Cards directory on example.
+You can create your own class which will extend \M1daVP\CustomTableCard\CustomTableCard in Nova/Cards directory on example.
 
 In this separate class you are able to fetch data from models in nice clean way.
 
@@ -120,7 +120,7 @@ namespace App\Nova\Cards;
 
 use App\Models\Order;
 
-class LatestOrders extends \Mako\CustomTableCard\CustomTableCard
+class LatestOrders extends \M1daVP\CustomTableCard\CustomTableCard
 {
     public function __construct()
     {
@@ -143,18 +143,18 @@ class LatestOrders extends \Mako\CustomTableCard\CustomTableCard
         $this->header($header->map(function($value) {
             // Make the Status column sortable
             return ($value === 'Status') ?
-                (new \Mako\CustomTableCard\Table\Cell($value))->sortable(true) :
-                new \Mako\CustomTableCard\Table\Cell($value);
+                (new \M1daVP\CustomTableCard\Table\Cell($value))->sortable(true) :
+                new \M1daVP\CustomTableCard\Table\Cell($value);
         })->toArray());
 
         $this->data($orders->map(function($order) {
-            return new \Mako\CustomTableCard\Table\Row(
-                new \Mako\CustomTableCard\Table\Cell($order['date']),
-                new \Mako\CustomTableCard\Table\Cell($order['order_number']),
+            return new \M1daVP\CustomTableCard\Table\Row(
+                new \M1daVP\CustomTableCard\Table\Cell($order['date']),
+                new \M1daVP\CustomTableCard\Table\Cell($order['order_number']),
                 // Instead of alphabetically ordering the status, set a sortableData value for better representation
-                (new \Mako\CustomTableCard\Table\Cell($order['status'])->sortableData($this->getStatusSortableData($order['status']))),
-                new \Mako\CustomTableCard\Table\Cell($order['price']),
-                new \Mako\CustomTableCard\Table\Cell($order['name'])
+                (new \M1daVP\CustomTableCard\Table\Cell($order['status'])->sortableData($this->getStatusSortableData($order['status']))),
+                new \M1daVP\CustomTableCard\Table\Cell($order['price']),
+                new \M1daVP\CustomTableCard\Table\Cell($order['name'])
             );
         })->toArray());
     }
@@ -191,7 +191,7 @@ protected function cards()
 {
     return [
         ...
-        \Mako\CustomTableCard\CustomTableCard::make(
+        \M1daVP\CustomTableCard\CustomTableCard::make(
             ...
         )->style('tight'),
      ];

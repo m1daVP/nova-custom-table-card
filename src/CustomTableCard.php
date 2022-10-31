@@ -1,6 +1,6 @@
 <?php
 
-namespace Mako\CustomTableCard;
+namespace M1daVP\CustomTableCard;
 
 use Laravel\Nova\Card;
 

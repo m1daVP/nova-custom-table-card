@@ -14,11 +14,11 @@
             />
             <tbody>
                 <TableRow v-for="(row, index) in rows"
-                          :key="index"
-                          :row="row"
-                          :should-show-tight="shouldShowTight"
-                          :should-show-column-borders="shouldShowColumnBorders"
-                          :has-view-column="hasViewColumn"
+                    :key="index"
+                    :row="row"
+                    :should-show-tight="shouldShowTight"
+                    :should-show-column-borders="shouldShowColumnBorders"
+                    :has-view-column="hasViewColumn"
                 />
             </tbody>
         </table>
@@ -28,7 +28,7 @@
             </div>
         </div>
         <pagination-links
-            v-if="paginator && paginator.data > 0"
+            v-if="paginator && paginator.data && paginator.data.length > 0"
             :next="hasNextPage"
             :page="currentPage"
             :pages="totalPages"
@@ -37,10 +37,8 @@
         >
             <span
                 v-if="resourceCountLabel"
-                :class="{
-                    'ml-auto': paginationComponent === 'pagination-links',
-                }"
-                class="text-sm text-80 px-4"
+                class="text-sm text-80 px-4 ml-auto"
+                @page="loadMore"
             >
                 {{ resourceCountLabel }}
             </span>
@@ -69,6 +67,7 @@ export default {
             title: '',
             viewAll: false,
             paginator: {},
+            paginationUrl: '',
             perPage: 0,
             currentPage: 1,
             allMatchingResourceCount: 0,
@@ -117,13 +116,14 @@ export default {
     },
 
     mounted() {
-        console.log(this.card)
         this.fillTableData(this.card)
-        debugger;
-        if (paginator !== undefined) {
-            this.paginator = paginator
-            this.perPage = paginator.per_page
-            this.allMatchingResourceCount = paginator.total
+        if (this.card.paginator) {
+            this.paginator = this.card.paginator
+            this.perPage = this.card.paginator.per_page
+            this.allMatchingResourceCount = this.card.paginator.total
+        }
+        if (this.card.paginationUrl) {
+            this.paginationUrl = this.card.paginationUrl
         }
 
         // this.$refs['table'].parentNode.classList.remove('min-h-40')
@@ -137,30 +137,32 @@ export default {
             this.viewAll = card.viewAll
         },
         selectPage(page) {
-            this.currentPage = page;
-            this.loadMore();
+            // this.currentPage = page;
+            this.loadMore(page);
         },
-        loadMore() {
-            debugger;
+        loadMore(page) {
             Nova.request()
-                .get(`/nova-vendor/custom-table${this.config.routes[0].url}`, {
+                .get(this.paginationUrl, {
                     params: {
-                        page: this.currentPage,
+                        page,
+                        per_page: this.perPage,
                     },
                 })
                 .then((response) => {
-                    debugger;
+                    this.currentPage = page;
                     this.paginator = response.data.paginator;
                     this.rows = response.data.rows;
-                    if (this.paginator !== undefined) {
+                    if (this.paginator) {
                         this.perPage = this.paginator.per_page;
                         this.allMatchingResourceCount = this.paginator.total;
                     }
-
-                    Nova.$emit('resources-loaded');
                 })
                 .catch((error) => {
+                    Nova.error(`Loading error: ${error.message}`);
                     console.error(error);
+                })
+                .finally(() => {
+                    Nova.$emit('resources-loaded');
                 });
         },
     },

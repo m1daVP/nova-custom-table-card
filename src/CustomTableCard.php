@@ -4,6 +4,7 @@ namespace M1daVP\CustomTableCard;
 
 use Laravel\Nova\Card;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Log;
 
 class CustomTableCard extends Card
 {
@@ -64,6 +65,13 @@ class CustomTableCard extends Card
 	{
 		return $this->withMeta([
 			'paginator' => $paginator,
+		]);
+	}
+
+	public function paginationUrl(string $paginationUrl)
+	{
+		return $this->withMeta([
+			'paginationUrl' => $paginationUrl,
 		]);
 	}
 

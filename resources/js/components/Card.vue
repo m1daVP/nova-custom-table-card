@@ -1,50 +1,56 @@
 <template>
     <div class="overflow-x-auto bg-white dark:bg-gray-800 rounded-lg shadow h-full pt-4">
         <h1 v-if="title" class="h-6 flex mb-3 text-sm font-bold px-6">{{ title }}</h1>
-        <table
-            class="w-full"
-            :class="card.style"
-            data-testid="resource-table"
-            ref="table"
+        <div
+            v-if="isLoading"
+            class="rounded-lg flex items-center justify-center absolute inset-0 z-30 pt-2"
         >
-            <TableHeader
-                :fields="header"
-                :should-show-column-borders="shouldShowColumnBorders"
-                :has-view-column="hasViewColumn"
-            />
-            <tbody>
-                <TableRow v-for="(row, index) in rows"
-                          :key="index"
-                          :row="row"
-                          :should-show-tight="shouldShowTight"
-                          :should-show-column-borders="shouldShowColumnBorders"
-                          :has-view-column="hasViewColumn"
-                />
-            </tbody>
-        </table>
-        <div v-if="viewAll && viewAll.label" class="w-full border-t border-gray-200 dark:border-gray-700 rounded-b-lg flex justify-center py-3">
-            <div>
-                <a class="text-primary-200 text-xs hover:text-primary-600" :href="viewAll.link">{{ viewAll.label }}</a>
-            </div>
+            <loader class="text-gray-300" width="50" />
         </div>
-        <pagination-links
-            v-if="paginator && paginator.data > 0"
-            :next="hasNextPage"
-            :page="currentPage"
-            :pages="totalPages"
-            :per-page="perPage"
-            :previous="hasPreviousPage"
-        >
-            <span
-                v-if="resourceCountLabel"
-                :class="{
-                    'ml-auto': paginationComponent === 'pagination-links',
-                }"
-                class="text-sm text-80 px-4"
+        <template v-else>
+            <table
+                class="w-full"
+                :class="card.style"
+                data-testid="resource-table"
+                ref="table"
             >
-                {{ resourceCountLabel }}
-            </span>
-        </pagination-links>
+                <TableHeader
+                    :fields="header"
+                    :should-show-column-borders="shouldShowColumnBorders"
+                    :has-view-column="hasViewColumn"
+                />
+                <tbody>
+                    <TableRow v-for="(row, index) in rows"
+                        :key="index"
+                        :row="row"
+                        :should-show-tight="shouldShowTight"
+                        :should-show-column-borders="shouldShowColumnBorders"
+                        :has-view-column="hasViewColumn"
+                    />
+                </tbody>
+            </table>
+            <div v-if="viewAll && viewAll.label" class="w-full border-t border-gray-200 dark:border-gray-700 rounded-b-lg flex justify-center py-3">
+                <div>
+                    <a class="text-primary-200 text-xs hover:text-primary-600" :href="viewAll.link">{{ viewAll.label }}</a>
+                </div>
+            </div>
+            <pagination-links
+                v-if="paginator && paginator.data && paginator.data.length > 0"
+                :next="hasNextPage"
+                :page="currentPage"
+                :pages="totalPages"
+                :per-page="perPage"
+                :previous="hasPreviousPage"
+                @page="loadMore"
+            >
+                <span
+                    v-if="resourceCountLabel"
+                    class="text-sm text-80 px-4 ml-auto"
+                >
+                    {{ resourceCountLabel }}
+                </span>
+            </pagination-links>
+        </template>
     </div>
 </template>
 
@@ -52,6 +58,7 @@
 import TableHeader from './TableHeader'
 import TableRow from './TableRow'
 import PaginationLinks  from './PaginationLinks'
+import Loader from './Loader'
 
 export default {
     props: ['card'],
@@ -60,6 +67,7 @@ export default {
         TableRow,
         TableHeader,
         PaginationLinks,
+        Loader,
     },
 
     data() {
@@ -69,9 +77,11 @@ export default {
             title: '',
             viewAll: false,
             paginator: {},
+            paginationUrl: '',
             perPage: 0,
             currentPage: 1,
             allMatchingResourceCount: 0,
+            isLoading: false,
         }
     },
 
@@ -117,13 +127,14 @@ export default {
     },
 
     mounted() {
-        console.log(this.card)
         this.fillTableData(this.card)
-        debugger;
-        if (paginator !== undefined) {
-            this.paginator = paginator
-            this.perPage = paginator.per_page
-            this.allMatchingResourceCount = paginator.total
+        if (this.card.paginator) {
+            this.paginator = this.card.paginator
+            this.perPage = this.card.paginator.per_page
+            this.allMatchingResourceCount = this.card.paginator.total
+        }
+        if (this.card.paginationUrl) {
+            this.paginationUrl = this.card.paginationUrl
         }
 
         // this.$refs['table'].parentNode.classList.remove('min-h-40')
@@ -136,31 +147,31 @@ export default {
             this.title = card.title
             this.viewAll = card.viewAll
         },
-        selectPage(page) {
-            this.currentPage = page;
-            this.loadMore();
-        },
-        loadMore() {
-            debugger;
+        loadMore(page) {
+            this.isLoading = true;
             Nova.request()
-                .get(`/nova-vendor/custom-table${this.config.routes[0].url}`, {
+                .get(this.paginationUrl, {
                     params: {
-                        page: this.currentPage,
+                        page,
+                        per_page: this.perPage,
                     },
                 })
                 .then((response) => {
-                    debugger;
+                    this.currentPage = page;
                     this.paginator = response.data.paginator;
                     this.rows = response.data.rows;
-                    if (this.paginator !== undefined) {
+                    if (this.paginator) {
                         this.perPage = this.paginator.per_page;
                         this.allMatchingResourceCount = this.paginator.total;
                     }
-
-                    Nova.$emit('resources-loaded');
                 })
                 .catch((error) => {
+                    Nova.error(`Loading error: ${error.message}`);
                     console.error(error);
+                })
+                .finally(() => {
+                    this.isLoading = false;
+                    Nova.$emit('resources-loaded');
                 });
         },
     },

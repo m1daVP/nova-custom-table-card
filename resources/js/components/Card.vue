@@ -1,48 +1,56 @@
 <template>
     <div class="overflow-x-auto bg-white dark:bg-gray-800 rounded-lg shadow h-full pt-4">
         <h1 v-if="title" class="h-6 flex mb-3 text-sm font-bold px-6">{{ title }}</h1>
-        <table
-            class="w-full"
-            :class="card.style"
-            data-testid="resource-table"
-            ref="table"
+        <div
+            v-if="isLoading"
+            class="rounded-lg flex items-center justify-center absolute inset-0 z-30 pt-2"
         >
-            <TableHeader
-                :fields="header"
-                :should-show-column-borders="shouldShowColumnBorders"
-                :has-view-column="hasViewColumn"
-            />
-            <tbody>
-                <TableRow v-for="(row, index) in rows"
-                    :key="index"
-                    :row="row"
-                    :should-show-tight="shouldShowTight"
+            <loader class="text-gray-300" width="50" />
+        </div>
+        <template v-else>
+            <table
+                class="w-full"
+                :class="card.style"
+                data-testid="resource-table"
+                ref="table"
+            >
+                <TableHeader
+                    :fields="header"
                     :should-show-column-borders="shouldShowColumnBorders"
                     :has-view-column="hasViewColumn"
                 />
-            </tbody>
-        </table>
-        <div v-if="viewAll && viewAll.label" class="w-full border-t border-gray-200 dark:border-gray-700 rounded-b-lg flex justify-center py-3">
-            <div>
-                <a class="text-primary-200 text-xs hover:text-primary-600" :href="viewAll.link">{{ viewAll.label }}</a>
+                <tbody>
+                    <TableRow v-for="(row, index) in rows"
+                        :key="index"
+                        :row="row"
+                        :should-show-tight="shouldShowTight"
+                        :should-show-column-borders="shouldShowColumnBorders"
+                        :has-view-column="hasViewColumn"
+                    />
+                </tbody>
+            </table>
+            <div v-if="viewAll && viewAll.label" class="w-full border-t border-gray-200 dark:border-gray-700 rounded-b-lg flex justify-center py-3">
+                <div>
+                    <a class="text-primary-200 text-xs hover:text-primary-600" :href="viewAll.link">{{ viewAll.label }}</a>
+                </div>
             </div>
-        </div>
-        <pagination-links
-            v-if="paginator && paginator.data && paginator.data.length > 0"
-            :next="hasNextPage"
-            :page="currentPage"
-            :pages="totalPages"
-            :per-page="perPage"
-            :previous="hasPreviousPage"
-        >
-            <span
-                v-if="resourceCountLabel"
-                class="text-sm text-80 px-4 ml-auto"
+            <pagination-links
+                v-if="paginator && paginator.data && paginator.data.length > 0"
+                :next="hasNextPage"
+                :page="currentPage"
+                :pages="totalPages"
+                :per-page="perPage"
+                :previous="hasPreviousPage"
                 @page="loadMore"
             >
-                {{ resourceCountLabel }}
-            </span>
-        </pagination-links>
+                <span
+                    v-if="resourceCountLabel"
+                    class="text-sm text-80 px-4 ml-auto"
+                >
+                    {{ resourceCountLabel }}
+                </span>
+            </pagination-links>
+        </template>
     </div>
 </template>
 
@@ -50,6 +58,7 @@
 import TableHeader from './TableHeader'
 import TableRow from './TableRow'
 import PaginationLinks  from './PaginationLinks'
+import Loader from './Loader'
 
 export default {
     props: ['card'],
@@ -58,6 +67,7 @@ export default {
         TableRow,
         TableHeader,
         PaginationLinks,
+        Loader,
     },
 
     data() {
@@ -71,6 +81,7 @@ export default {
             perPage: 0,
             currentPage: 1,
             allMatchingResourceCount: 0,
+            isLoading: false,
         }
     },
 
@@ -137,6 +148,7 @@ export default {
             this.viewAll = card.viewAll
         },
         loadMore(page) {
+            this.isLoading = true;
             Nova.request()
                 .get(this.paginationUrl, {
                     params: {
@@ -158,6 +170,7 @@ export default {
                     console.error(error);
                 })
                 .finally(() => {
+                    this.isLoading = false;
                     Nova.$emit('resources-loaded');
                 });
         },

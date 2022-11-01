@@ -136,10 +136,6 @@ export default {
             this.title = card.title
             this.viewAll = card.viewAll
         },
-        selectPage(page) {
-            // this.currentPage = page;
-            this.loadMore(page);
-        },
         loadMore(page) {
             Nova.request()
                 .get(this.paginationUrl, {
